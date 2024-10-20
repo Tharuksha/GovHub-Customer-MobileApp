@@ -48,6 +48,12 @@ const AddTicketScreen = ({ route, navigation }) => {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [appointmentReasons, setAppointmentReasons] = useState([]);
   const [showIssueMenu, setShowIssueMenu] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+  });
   const insets = useSafeAreaInsets();
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -105,7 +111,14 @@ const AddTicketScreen = ({ route, navigation }) => {
     fetchDepartmentDetails();
   }, [user, departmentId]);
 
+  useEffect(() => {
+    console.log("appointmentReasons updated:", appointmentReasons);
+  }, [appointmentReasons]);
+
   const handleInputChange = (name, value) => {
+    if (name === "issueDescription") {
+      console.log("Updating issueDescription:", value);
+    }
     setTicketData({ ...ticketData, [name]: value });
     setError("");
   };
@@ -197,6 +210,12 @@ const AddTicketScreen = ({ route, navigation }) => {
     </Animated.View>
   );
 
+  const measureDropdown = (event) => {
+    event.target.measure((x, y, width, height, pageX, pageY) => {
+      setMenuPosition({ x: pageX, y: pageY, width, height });
+    });
+  };
+
   const renderIssueDescriptionDropdown = () => (
     <Animated.View
       style={[
@@ -209,7 +228,10 @@ const AddTicketScreen = ({ route, navigation }) => {
     >
       <BlurView intensity={80} tint="light" style={styles.blurContainer}>
         <TouchableOpacity
-          onPress={() => setShowIssueMenu(true)}
+          onPress={(event) => {
+            measureDropdown(event);
+            setShowIssueMenu(true);
+          }}
           style={styles.dropdownButton}
         >
           <Text style={styles.dropdownButtonText}>
@@ -221,12 +243,14 @@ const AddTicketScreen = ({ route, navigation }) => {
       <Menu
         visible={showIssueMenu}
         onDismiss={() => setShowIssueMenu(false)}
-        anchor={<View style={{ top: 0, left: 0 }} />}
+        anchor={menuPosition}
+        style={{ maxWidth: menuPosition.width }}
       >
         {appointmentReasons.map((reason, index) => (
           <Menu.Item
             key={index}
             onPress={() => {
+              console.log("Selected reason:", reason);
               handleInputChange("issueDescription", reason);
               setShowIssueMenu(false);
             }}
