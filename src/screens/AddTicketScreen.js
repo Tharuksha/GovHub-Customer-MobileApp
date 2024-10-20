@@ -11,7 +11,12 @@ import {
   Text,
   Animated,
 } from "react-native";
-import { TextInput, Snackbar, ActivityIndicator } from "react-native-paper";
+import {
+  TextInput,
+  Snackbar,
+  ActivityIndicator,
+  Menu,
+} from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { AuthContext } from "../context/AuthContext";
@@ -41,6 +46,8 @@ const AddTicketScreen = ({ route, navigation }) => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [appointmentReasons, setAppointmentReasons] = useState([]);
+  const [showIssueMenu, setShowIssueMenu] = useState(false);
   const insets = useSafeAreaInsets();
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -71,7 +78,32 @@ const AddTicketScreen = ({ route, navigation }) => {
     if (!user || !user._id) {
       setError("User information is not available. Please log in again.");
     }
-  }, [user]);
+
+    const fetchDepartmentDetails = async () => {
+      try {
+        console.log("Fetching department details for ID:", departmentId);
+        const response = await axios.get(
+          `${API_BASE_URL}/departments/${departmentId}`
+        );
+        console.log("Department details response:", response.data);
+        if (response.data && response.data.appointmentReasons) {
+          setAppointmentReasons(response.data.appointmentReasons);
+          console.log(
+            "Appointment reasons set:",
+            response.data.appointmentReasons
+          );
+        } else {
+          console.log("No appointment reasons found in the response");
+          setError("No appointment reasons available for this department.");
+        }
+      } catch (error) {
+        console.error("Error fetching department details:", error);
+        setError("Failed to fetch appointment reasons. Please try again.");
+      }
+    };
+
+    fetchDepartmentDetails();
+  }, [user, departmentId]);
 
   const handleInputChange = (name, value) => {
     setTicketData({ ...ticketData, [name]: value });
@@ -92,7 +124,7 @@ const AddTicketScreen = ({ route, navigation }) => {
 
   const validateForm = () => {
     if (!ticketData.issueDescription.trim()) {
-      setError("Please enter an issue description.");
+      setError("Please select an issue description.");
       return false;
     }
     if (!ticketData.appointmentTime) {
@@ -165,6 +197,46 @@ const AddTicketScreen = ({ route, navigation }) => {
     </Animated.View>
   );
 
+  const renderIssueDescriptionDropdown = () => (
+    <Animated.View
+      style={[
+        styles.inputContainer,
+        {
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
+        },
+      ]}
+    >
+      <BlurView intensity={80} tint="light" style={styles.blurContainer}>
+        <TouchableOpacity
+          onPress={() => setShowIssueMenu(true)}
+          style={styles.dropdownButton}
+        >
+          <Text style={styles.dropdownButtonText}>
+            {ticketData.issueDescription || "Select Issue Description"}
+          </Text>
+          <Ionicons name="chevron-down" size={24} color="#4E94DE" />
+        </TouchableOpacity>
+      </BlurView>
+      <Menu
+        visible={showIssueMenu}
+        onDismiss={() => setShowIssueMenu(false)}
+        anchor={<View style={{ top: 0, left: 0 }} />}
+      >
+        {appointmentReasons.map((reason, index) => (
+          <Menu.Item
+            key={index}
+            onPress={() => {
+              handleInputChange("issueDescription", reason);
+              setShowIssueMenu(false);
+            }}
+            title={reason}
+          />
+        ))}
+      </Menu>
+    </Animated.View>
+  );
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -207,12 +279,7 @@ const AddTicketScreen = ({ route, navigation }) => {
         scrollEventThrottle={16}
       >
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
-        {renderInput(
-          "Issue Description",
-          ticketData.issueDescription,
-          (value) => handleInputChange("issueDescription", value),
-          true
-        )}
+        {renderIssueDescriptionDropdown()}
         {renderInput(
           "Notes (Optional)",
           ticketData.notes,
@@ -462,6 +529,16 @@ const styles = StyleSheet.create({
     bottom: 20,
     left: 20,
     right: 20,
+  },
+  dropdownButton: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 15,
+  },
+  dropdownButtonText: {
+    fontSize: 16,
+    color: "#333",
   },
 });
 
