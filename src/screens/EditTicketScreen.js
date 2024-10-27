@@ -84,8 +84,8 @@ const EditTicketScreen = ({ route, navigation }) => {
   };
 
   const handleInputChange = (name, value) => {
-    if (ticket.status === "Solved") {
-      showSnackbar("Cannot edit a solved ticket.");
+    if (ticket.status === "Approved") {
+      showSnackbar("Cannot edit a Approved ticket.");
       return;
     }
     setTicket({ ...ticket, [name]: value });
@@ -95,8 +95,8 @@ const EditTicketScreen = ({ route, navigation }) => {
   };
 
   const handleDateChange = (event, selectedDate) => {
-    if (ticket.status === "Solved") {
-      showSnackbar("Cannot edit a solved ticket.");
+    if (ticket.status === "Approved") {
+      showSnackbar("Cannot edit a Approved ticket.");
       return;
     }
     const currentDate = selectedDate || ticket.appointmentDate;
@@ -105,8 +105,8 @@ const EditTicketScreen = ({ route, navigation }) => {
   };
 
   const validateForm = () => {
-    if (ticket.status === "Solved") {
-      showSnackbar("Cannot edit a solved ticket.");
+    if (ticket.status === "Approved") {
+      showSnackbar("Cannot edit a Approved ticket.");
       return false;
     }
 
@@ -195,7 +195,7 @@ const EditTicketScreen = ({ route, navigation }) => {
           mode="flat"
           style={styles.input}
           error={!!error}
-          disabled={!editable || ticket.status === "Solved"}
+          disabled={!editable || ticket.status === "Approved"}
           multiline={multiline}
           numberOfLines={multiline ? 4 : 1}
         />
@@ -226,7 +226,7 @@ const EditTicketScreen = ({ route, navigation }) => {
           ]}
         >
           <Text style={styles.headerTitle}>
-            {ticket.status === "Solved"
+            {ticket.status === "Approved"
               ? "View Appointment"
               : "Edit Appointment"}
           </Text>
@@ -267,7 +267,7 @@ const EditTicketScreen = ({ route, navigation }) => {
             <TouchableOpacity
               onPress={() => setShowDatePicker(true)}
               style={styles.dateButton}
-              disabled={ticket.status === "Solved"}
+              disabled={ticket.status === "Approved"}
             >
               <Ionicons
                 name="calendar-outline"
@@ -296,7 +296,7 @@ const EditTicketScreen = ({ route, navigation }) => {
           />
         )}
         {renderInput("Status", ticket.status, null, null, false, false)}
-        {ticket.status !== "Solved" && (
+        {ticket.status !== "Approved" && (
           <Animated.View
             style={[
               styles.buttonContainer,

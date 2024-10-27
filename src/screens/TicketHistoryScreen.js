@@ -136,7 +136,8 @@ const TicketHistoryScreen = ({ navigation }) => {
   }, [fetchTickets]);
 
   const renderTicketItem = ({ item, index }) => {
-    const canDelete = item.status !== "Solved" && item.status !== "In Progress";
+    const canDelete =
+      item.status !== "Approved" && item.status !== "In Progress";
 
     return (
       <Animated.View
@@ -176,7 +177,7 @@ const TicketHistoryScreen = ({ navigation }) => {
                 <Ionicons name="eye-outline" size={24} color="#4E94DE" />
                 <Text style={styles.actionText}>View</Text>
               </TouchableOpacity>
-              {item.status !== "Solved" && (
+              {item.status !== "Approved" && (
                 <TouchableOpacity
                   style={styles.actionButton}
                   onPress={() =>
